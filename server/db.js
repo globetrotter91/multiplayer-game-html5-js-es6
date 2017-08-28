@@ -13,8 +13,8 @@ export var removePack = {
 
 export var SOCKET_LIST = {};
 
-//const redisClient = createClient(6379, 'redis');
-const redisClient = createClient();
+const redisClient = createClient(6379, 'redis');
+//const redisClient = createClient();
 redisClient.on('connect', () => {
 	console.log('redis connected');
 })

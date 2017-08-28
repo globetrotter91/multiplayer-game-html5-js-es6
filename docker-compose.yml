@@ -1,6 +1,6 @@
 version: '2'
 services:
-  node-app:
+  kill-the-enemy-game:
     build: .
     ports:
      - "3030:3030"

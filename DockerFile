@@ -1,0 +1,12 @@
+FROM node:6.10-alpine
+
+COPY . /src
+
+RUN cd /src; npm install
+RUN cd /src/client; npm install
+RUN cd /src; npm run build
+RUN mv /src/client/build /src/build/client
+
+EXPOSE 3030
+CMD ["node", "/src/build/app.js"]
+

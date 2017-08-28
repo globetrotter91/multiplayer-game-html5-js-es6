@@ -11,6 +11,8 @@ Kill the enemy game using html5 canvas and basic JS. ES6 syntax.
 
 3. docker-compose up
 
+4. App runs on http://localhost:3030
+
 
 # Info
 
@@ -23,3 +25,12 @@ Kill the enemy game using html5 canvas and basic JS. ES6 syntax.
 4. The javascript is written in es2015 syntax [/gamejs]
 
 5. Babel transpiler is used for transpiling ES6 to browser-friendly JS. 
+
+
+# ToDO
+
+1. Add a collection of object for players to build stuff on the map.
+
+2. Add powerups. 
+
+3. Add multiple boards/channels [max 4 player each]. 

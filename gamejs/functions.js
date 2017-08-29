@@ -41,6 +41,20 @@ function drawScore(){
 		livesSpan.innerHTML = globals.lastLives;
 	}
 }
+var stopId; 
+function realupdate(){
+	if(!globals.selfId)		return;
+	ctx.clearRect(0,0,WIDTH,HEIGHT);
+	
+	drawScore();
+	for(var i in Player.list)
+		Player.list[i].draw();
+	for(var i in Bullet.list)
+		Bullet.list[i].draw();
+
+	cancelAnimationFrame(stopId);
+}
+
 
 export function updateView(){
 	if(!globals.selfId)		return;
@@ -51,6 +65,7 @@ export function updateView(){
 		Player.list[i].draw();
 	for(var i in Bullet.list)
 		Bullet.list[i].draw();
+	//stopId = window.requestAnimationFrame(realupdate);  // this created problem in profiling snapshot
 }
 
 export function configure(){

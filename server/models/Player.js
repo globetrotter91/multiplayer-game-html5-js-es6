@@ -32,15 +32,6 @@ const Player = function(param){
 		}
 	}
 	self.shootBullet = function(angle){
-		if(self.directionMod==2 && !(self.mouseAngle >= 45 && self.mouseAngle < 135)){
-			angle = 90;
-		}
-		if(self.directionMod==1 && !(self.mouseAngle >= 135 && self.mouseAngle < 225)){
-			angle = 180;
-		}
-		if(self.directionMod==0 && !(self.mouseAngle >= 225 && self.mouseAngle < 315)){
-			angle = 270;
-		}
 		Bullet({
 			parent:self.id,
 			angle:angle,
@@ -68,6 +59,9 @@ const Player = function(param){
 		}
 		else if(aimAngle >= 225 && aimAngle < 315){	//up
 			self.directionMod = 0;
+		}
+		else if(aimAngle >=315 && aimAngle < 45){
+			self.directionMod = 3;
 		}
 
 		if(self.pressingRight){

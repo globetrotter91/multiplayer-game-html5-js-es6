@@ -13,8 +13,8 @@ export var removePack = {
 
 export var SOCKET_LIST = {};
 
-const redisClient = createClient(6379, 'redis');
-//const redisClient = createClient();
+//const redisClient = createClient(6379, 'redis');
+const redisClient = createClient();
 redisClient.on('connect', () => {
 	console.log('redis connected');
 })
@@ -49,9 +49,10 @@ export function createUser(username, socket, cb){
             var user = res.user;
             delete SOCKET_LIST[user.id];
             delete Player.list[user.id];
-            
+            console.log(user);
             if(user.lives<=0){
                 var timeDiff=(parseInt(Date.now())-parseInt(user.lastConnect))/(1000*60*60);
+                console.log(timeDiff);
                 if(timeDiff>=24){
                     var data = [
                         'id', socket.id, 

@@ -173,18 +173,12 @@ enterGame.onclick = () => {
 		}
 		
 	}
-	var oldClientX = 0, oldClientY = 0 ;  
 	document.onmousemove = function(event){ 
-		if(socket){
-			//console.log(event, event.clientX, event.clientY);
-			var x =  event.clientX - oldClientX;
-			var y =  event.clientY - oldClientY;
+		if(socket && Player.list[globals.selfId]){
+			var x =  event.clientX - Player.list[globals.selfId].x;
+			var y =  event.clientY - Player.list[globals.selfId].y;
 			var angle = Math.atan2(y,x) / Math.PI * 180;
-			//console.log(angle);
-
 			socket.emit(EVENT_HAPPENED,{inputId:'mouseAngle',state:angle});
-			oldClientX = event.clientX;
-			oldClientY = event.clientY; 
 		}
 	}
 

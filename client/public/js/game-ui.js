@@ -381,19 +381,12 @@ _declarations.enterGame.onclick = function () {
 			socket.emit(_declarations.EVENT_HAPPENED, { inputId: 'attack', state: false });
 		}
 	};
-	var oldClientX = 0,
-	    oldClientY = 0;
 	document.onmousemove = function (event) {
-		if (socket) {
-			//console.log(event, event.clientX, event.clientY);
-			var x = event.clientX - oldClientX;
-			var y = event.clientY - oldClientY;
+		if (socket && _models.Player.list[_globals2.default.selfId]) {
+			var x = event.clientX - _models.Player.list[_globals2.default.selfId].x;
+			var y = event.clientY - _models.Player.list[_globals2.default.selfId].y;
 			var angle = Math.atan2(y, x) / Math.PI * 180;
-			//console.log(angle);
-
 			socket.emit(_declarations.EVENT_HAPPENED, { inputId: 'mouseAngle', state: angle });
-			oldClientX = event.clientX;
-			oldClientY = event.clientY;
 		}
 	};
 
@@ -492,6 +485,18 @@ function drawScore() {
 		_declarations.livesSpan.innerHTML = _globals2.default.lastLives;
 	}
 }
+var stopId;
+function realupdate() {
+	if (!_globals2.default.selfId) return;
+	_declarations.ctx.clearRect(0, 0, _declarations.WIDTH, _declarations.HEIGHT);
+
+	drawScore();
+	for (var i in _models.Player.list) {
+		_models.Player.list[i].draw();
+	}for (var i in _models.Bullet.list) {
+		_models.Bullet.list[i].draw();
+	}cancelAnimationFrame(stopId);
+}
 
 function updateView() {
 	if (!_globals2.default.selfId) return;
@@ -502,7 +507,7 @@ function updateView() {
 		_models.Player.list[i].draw();
 	}for (var i in _models.Bullet.list) {
 		_models.Bullet.list[i].draw();
-	}
+	} //stopId = window.requestAnimationFrame(realupdate);  // this created problem in profiling snapshot
 }
 
 function configure() {

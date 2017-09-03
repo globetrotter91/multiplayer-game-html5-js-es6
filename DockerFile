@@ -1,12 +1,14 @@
-FROM node:6.10-alpine
+FROM node:8-alpine
 
-COPY . /src
+WORKDIR /app
+RUN npm install nodemon -g
+RUN npm install babel-cli -g
 
-RUN cd /src; npm install
-RUN cd /src/client; npm install
-RUN cd /src; npm run build
-RUN mv /src/client/build /src/build/client
+COPY package.json /app/package.json
+COPY .babelrc /app/.babelrc
+
+COPY ./server /app/server
+
+RUN npm install
 
 EXPOSE 3030
-CMD ["node", "/src/build/app.js"]
-

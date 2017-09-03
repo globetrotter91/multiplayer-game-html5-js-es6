@@ -1,12 +1,26 @@
-import { 
-    enterGame, playerName, usernameSpan, loginBox, gameInstructions, gameInstructions0, WIDTH, HEIGHT, 
-    signDiv, gamePage, gameLostDiv, finalScoreSpan, primaryButton, warningButton, dangerButton, infoButton, 
-    ENTERGAME_REQUEST, ENTERGAME_RESPONSE, INITIALIZE, UPDATE, REMOVE, COLOR_SELECTED, GAME_LOST, EVENT_HAPPENED 
-} from './declarations';
-import { showError, printInstructions, updateView, configure } from './functions';
-import { Player, Bullet } from './models';
-
+'use strict';
 import globals from './globals';
+
+import { 
+    enterGame, playerName, usernameSpan, WIDTH, HEIGHT, 
+    primaryButton, warningButton, dangerButton, infoButton, 
+	ENTERGAME_REQUEST, ENTERGAME_RESPONSE, INITIALIZE, UPDATE, REMOVE, COLOR_SELECTED, GAME_LOST, EVENT_HAPPENED,
+	PRIMARY_COLOR, INFO_COLOR, DANGER_COLOR, WARNING_COLOR 
+} from './declarations';
+
+import { showError, configure } from './functions';
+
+import {
+	serverResponseEnterGame,
+	serverResponseColorSelected,
+	serverResponseGameLost,
+	serverResponseInitialize,
+	serverResponseRemove,
+	serverResponseUpdate
+} from './socket.event.functions';
+
+import Player from './Player';
+import Bullet from './Bullet';
 
 enterGame.onclick = () => {
 	if(playerName.value.trim()==''){
@@ -14,195 +28,116 @@ enterGame.onclick = () => {
 		showError('Name cannot be blank');
 		return;
 	}
-	
-	var socket = io();
-	
-	
-		
-	socket.emit(ENTERGAME_REQUEST,{ username : playerName.value });
+
+	// if the username is not blank create a new connection
+	var socket = io();				
+	//sending player name to the server
+	socket.emit(ENTERGAME_REQUEST,{ username : playerName.value });			
 	usernameSpan.innerHTML = playerName.value;
-	socket.on(ENTERGAME_RESPONSE,function(data){
-		if(data.status){
-			if(data.newUser){
-				loginBox.style.display = 'none';
-				gameInstructions.style.display = 'block';
-				gameInstructions.style.height = Math.floor(0.7*HEIGHT) + 'px';
-				printInstructions(gameInstructions0);
-			}else{
-				signDiv.style.display = 'none';
-				gamePage.style.display = 'block';
-			}				
-		} else{
-			//alert(res.error);
-			showError(data.error);
 
-		}		
-	});
+	// handling server response for new player
+	socket.on(ENTERGAME_RESPONSE, serverResponseEnterGame);
 
+	// handling server response when a player is initialized
+	socket.on(INITIALIZE, serverResponseInitialize);
 
-	socket.on(INITIALIZE,function(data){	
-		//console.log(data);
-		if(data.selfId) globals.selfId = data.selfId;
-		for(var i = 0 ; i < data.player.length; i++){
-			new Player(data.player[i]);
-		}
-		for(var i = 0 ; i < data.bullet.length; i++){
-			new Bullet(data.bullet[i]);
-		}
-		updateView();
-	});
+	// handling server response when a player is moving or attacking
+	socket.on(UPDATE, serverResponseUpdate);
 
-	socket.on(UPDATE,function(data){
-		for(var i = 0 ; i < data.player.length; i++){
-			var pack = data.player[i];
-			var p = Player.list[pack.id];
-			//console.log(p, pack.x);
-			if(p){
-				if(pack.x !== undefined)
-					p.x = pack.x;
-				if(pack.y !== undefined)
-					p.y = pack.y;
-				if(pack.hp !== undefined)
-					p.hp = pack.hp;
-				if(pack.score !== undefined)
-					p.score = pack.score;
-				if(pack.lives !== undefined)
-					p.lives = pack.lives;
-				if(pack.mouseAngle !== undefined)
-					p.mouseAngle = pack.mouseAngle;
-				if(pack.directionMod !== undefined)
-					p.directionMod = pack.directionMod;
-				if(pack.spriteAnimCounter !== undefined)
-					p.spriteAnimCounter = pack.spriteAnimCounter;
-				if(pack.color !== undefined)
-					p.color = pack.color;
-				
-			}
-		}
-		if(data.player.length!==Player.list.length){
-			for(var id in Player.list){
-				var check = 0;
-				for(var i = 0 ; i < data.player.length; i++){
-					if(id == data.player[i].id){
-						check=1;
-						break;
-					}
-				}
-				if(check==0){
-					delete Player.list[id]
-				}
-			}
-		}
-		for(var i = 0 ; i < data.bullet.length; i++){
-			var pack = data.bullet[i];
-			var b = Bullet.list[data.bullet[i].id];
-			if(b){
-				if(pack.x !== undefined)
-					b.x = pack.x;
-				if(pack.y !== undefined)
-					b.y = pack.y;
-			}
-		}
-		updateView();
+	// handling server response when a player is removed
+	socket.on(REMOVE, serverResponseRemove);
 
-		
-	});
+	// handling server response when a player selects color to start game
+	socket.on(COLOR_SELECTED, serverResponseColorSelected);
 
-	socket.on(REMOVE,function(data){
-		for(var i = 0 ; i < data.player.length; i++){
-			delete Player.list[data.player[i]];
-		}
-		for(var i = 0 ; i < data.bullet.length; i++){
-			delete Bullet.list[data.bullet[i]];
-		}
-		updateView();
-	});
+	// handling server response when a player has lost
+	socket.on(GAME_LOST, serverResponseGameLost);
 
-	socket.on(COLOR_SELECTED,function(data){
-		if(data.status){
-			signDiv.style.display = 'none';
-			gamePage.style.display = 'block';
-			updateView();
-		}else{
-			showError('Some problem with server. Please try after some time.');
-		}	
-	});
-
-	socket.on(GAME_LOST, function(data){
-		//console.log('in game lost', data);
-		gamePage.style.display = 'none';
-		gameLostDiv.style.display = 'block';
-		finalScoreSpan.innerHTML = data.score;
-		socket = null; 
-	})
-
-	document.onkeydown = function(event){
-		if(socket){
-			if(event.keyCode === 39)	//right
-				socket.emit(EVENT_HAPPENED,{inputId:'right',state:true});
-			else if(event.keyCode === 40)	//down
-				socket.emit(EVENT_HAPPENED,{inputId:'down',state:true});
-			else if(event.keyCode === 37) //left
-				socket.emit(EVENT_HAPPENED,{inputId:'left',state:true});
-			else if(event.keyCode === 38) // up
-				socket.emit(EVENT_HAPPENED,{inputId:'up',state:true});
+	//handling the key down event 
+	//fires a event sending the event data to server
+	//-- helps in movement of the player
+	document.onkeydown = (event) => {
+		if (socket) {
+			if (event.keyCode === 39)	//right
+				socket.emit(EVENT_HAPPENED, { inputId: 'right', state: true });
+			else if (event.keyCode === 40)	//down
+				socket.emit(EVENT_HAPPENED,{ inputId: 'down', state: true });
+			else if (event.keyCode === 37) //left
+				socket.emit(EVENT_HAPPENED,{ inputId: 'left', state: true} );
+			else if (event.keyCode === 38) // up
+				socket.emit(EVENT_HAPPENED,{ inputId: 'up', state: true });
 		}		
 	}
-	document.onkeyup = function(event){
-		if(socket){
+
+	//handling the key up event 
+	//fires a event sending the event data to server based on the key codes
+	//-- helps in stopping movement of the player
+	document.onkeyup = (event) => {
+		if (socket) {
 			if(event.keyCode === 39)	//right
-				socket.emit(EVENT_HAPPENED,{inputId:'right',state:false});
+				socket.emit(EVENT_HAPPENED, { inputId: 'right', state: false });
 			else if(event.keyCode === 40)	//down
-				socket.emit(EVENT_HAPPENED,{inputId:'down',state:false});
+				socket.emit(EVENT_HAPPENED, { inputId: 'down', state: false });
 			else if(event.keyCode === 37) //left
-				socket.emit(EVENT_HAPPENED,{inputId:'left',state:false});
+				socket.emit(EVENT_HAPPENED, { inputId: 'left', state: false });
 			else if(event.keyCode === 38) // up
-				socket.emit(EVENT_HAPPENED,{inputId:'up',state:false});
+				socket.emit(EVENT_HAPPENED, { inputId:' up', state: false });
 		}
 	}
 
-	document.onmousedown = function(event){
-		if(socket){
-			socket.emit(EVENT_HAPPENED,{inputId:'attack',state:true});
+	//handling the mouse down/left-click event 
+	//fires a event sending the event data to server 
+	//-- helps in firing the bullets
+	document.onmousedown = (event) => {
+		if (socket) {
+			socket.emit(EVENT_HAPPENED, { inputId: 'attack', state: true });
 		}
-		
 	}
-	document.onmouseup = function(event){
-		if(socket){
-			socket.emit(EVENT_HAPPENED,{inputId:'attack',state:false});
+
+	//handling the mouse up event 
+	//fires a event sending the event data to server 
+	//-- helps in stop firing the bullets
+	document.onmouseup = (event) => {
+		if (socket) {
+			socket.emit(EVENT_HAPPENED, { inputId: 'attack', state: false });
 		}
-		
 	}
-	document.onmousemove = function(event){ 
-		if(socket && Player.list[globals.selfId]){
-			var x =  event.clientX - Player.list[globals.selfId].x;
-			var y =  event.clientY - Player.list[globals.selfId].y;
+	
+	//handling the mouse move event 
+	//fires a event sending the event data to server [event data being the mouse angle calculated wrt player]
+	//-- helps in firing bullets at a particlar angle 
+	//-- helps in positioning the player sprite image 
+	document.onmousemove = (event) => { 
+		if (socket && globals.playerList[globals.selfId]) {
+			var x =  event.clientX - globals.playerList[globals.selfId].x;
+			var y =  event.clientY - globals.playerList[globals.selfId].y;
 			var angle = Math.atan2(y,x) / Math.PI * 180;
 			socket.emit(EVENT_HAPPENED,{inputId:'mouseAngle',state:angle});
 		}
 	}
 
-	document.oncontextmenu = function(event){
+	//disabling the right click on the document
+	document.oncontextmenu = (event) => {
 		event.preventDefault();
 	}
 
-	primaryButton.onclick = function(){
-		socket.emit(EVENT_HAPPENED,{inputId:'colorSelected',state:'#008cba'});
+	//following four functions 
+	//sends the selected color by the player to the server
+	primaryButton.onclick = () => {
+		socket.emit(EVENT_HAPPENED,{inputId:'colorSelected',state: PRIMARY_COLOR});
+	}
+	infoButton.onclick = () => {
+		socket.emit(EVENT_HAPPENED,{inputId:'colorSelected',state: INFO_COLOR});
+	}
+	warningButton.onclick = () => {
+		socket.emit(EVENT_HAPPENED,{inputId:'colorSelected',state: WARNING_COLOR});
+	}
+	dangerButton.onclick = () => {
+		socket.emit(EVENT_HAPPENED,{inputId:'colorSelected',state: DANGER_COLOR});
 	}
 
-
-	infoButton.onclick = function(){
-		socket.emit(EVENT_HAPPENED,{inputId:'colorSelected',state:'#5bc0de'});
-	}
-
-	warningButton.onclick = function(){
-		socket.emit(EVENT_HAPPENED,{inputId:'colorSelected',state:'#E99002'});
-	}
-
-	dangerButton.onclick = function(){
-		socket.emit(EVENT_HAPPENED,{inputId:'colorSelected',state:'#F04124'});
-	}
-
+	//checks the connection is active with the server	
+	// * note - this can also be achieved in more optimized manner user service workers if the the connection is https
 	var connectionManager = setInterval(function(){
 		if(socket.disconnected){
 			showError('Error in server connection');
@@ -213,4 +148,5 @@ enterGame.onclick = () => {
 		}
 	}, 1000);
 }
+//configure the size of the canvas based on the size of the screen.
 configure()

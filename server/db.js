@@ -5,7 +5,7 @@ export var initPack = {
     player:[],
     bullet:[]
 };
-
+   
 export var removePack = {
     player:[],
     bullet:[]
@@ -13,7 +13,7 @@ export var removePack = {
 
 export var SOCKET_LIST = {};
 
-const redisClient = createClient(6379, 'redis');
+const redisClient = createClient(6379, 'db');
 //const redisClient = createClient();
 redisClient.on('connect', () => {
 	console.log('redis connected');
@@ -98,6 +98,7 @@ export function createUser(username, socket, cb){
             ];
             setDB(username, data, (res) => {
                 res['newUser'] = true;
+                console.log(res);
                 cb(res);
             })
         }
@@ -130,3 +131,7 @@ export function noOfOnlineUsers(){
     }
     return hmLength;
 }
+
+//  code readibility/classes.. // comments ... for other people.
+//  vector logic. -abstraction.. 
+//  multi threading.. for multiple loads.

@@ -1,7 +1,6 @@
-
+// global height and width
 export const WIDTH = window.innerWidth;
 export const HEIGHT = window.innerHeight;
-
 
 //divs
 export const signDiv = document.getElementById('userDiv');
@@ -22,6 +21,12 @@ export const livesSpan = document.getElementById('livesSpan');
 export const gameLostDiv = document.getElementById('gameLostDiv');
 export const finalScoreSpan = document.getElementById('finalScoreSpan');
 
+//colors
+export const INFO_COLOR = '#5bc0de';
+export const PRIMARY_COLOR = '#008cba';
+export const DANGER_COLOR = '#F04124';
+export const WARNING_COLOR = '#E99002';
+
 //game
 export const Img = {};
 Img.player = new Image();
@@ -29,9 +34,11 @@ Img.player.src = 'img/player.png';
 Img.bullet = new Image();
 Img.bullet.src = 'img/bullet.png';
 
+//canvas
 export const canvas = document.getElementById("ctx"),
 	ctx = canvas.getContext("2d");
 
+//game instructions text
 export const fullText = [
 	'Welcome to KILL THE EMEMY',
 	'Following are the rules', 
@@ -44,6 +51,7 @@ export const fullText = [
 	'3. Your health for a life can be monitored on the bar above the player.'
 ];
 
+//socket events 
 export const ENTERGAME_REQUEST = 'ENTERGAME_REQUEST';
 export const ENTERGAME_RESPONSE = 'ENTERGAME_RESPONSE';
 export const DISCONNECT = 'disconnect';
@@ -55,6 +63,3 @@ export const REMOVE = 'REMOVE';
 export const EVENT_HAPPENED = 'EVENT_HAPPENED';
 export const COLOR_SELECTED = 'COLOR_SELECTED'; 
 export const GAME_LOST = 'GAME_LOST'; 
-
-
-

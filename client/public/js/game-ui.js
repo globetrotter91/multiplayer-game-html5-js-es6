@@ -60,11 +60,35 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 5);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+                                value: true
+});
+exports.default = {
+                                selfId: null, // selfId is the id of the player who is logged in 
+                                //-- helps to differentiate the player playing from his enemies
+                                lastScore: null, // score global for the player
+                                // -- helps to save the last score of the player playing.
+                                lastLives: null, // lives global for the player
+                                // also referred to as killings in the game.
+                                // -- helps to save the remaining lives of the player playing.
+                                playerList: {}, // global player list
+                                // -- helps to keep the track of the players and the enemies 
+                                bulletList: {} // global bullet list
+                                // -- helps to keep track of the bullets fired. 
+};
+
+/***/ }),
+/* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -130,51 +154,354 @@ var COLOR_SELECTED = exports.COLOR_SELECTED = 'COLOR_SELECTED';
 var GAME_LOST = exports.GAME_LOST = 'GAME_LOST';
 
 /***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-                                value: true
-});
-exports.default = {
-                                selfId: null, // selfId is the id of the player who is logged in 
-                                //-- helps to differentiate the player playing from his enemies
-                                lastScore: null, // score global for the player
-                                // -- helps to save the last score of the player playing.
-                                lastLives: null, // lives global for the player
-                                // also referred to as killings in the game.
-                                // -- helps to save the remaining lives of the player playing.
-                                playerList: {}, // global player list
-                                // -- helps to keep the track of the players and the enemies 
-                                bulletList: {} // global bullet list
-                                // -- helps to keep track of the bullets fired. 
-};
-
-/***/ }),
 /* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _globals = __webpack_require__(1);
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+exports.showError = showError;
+exports.printInstructions = printInstructions;
+exports.updateView = updateView;
+exports.configure = configure;
+exports.hideElement = hideElement;
+exports.showElement = showElement;
+exports.manageHieghtForGameInstructions = manageHieghtForGameInstructions;
+exports.showFinalScore = showFinalScore;
+
+var _declarations = __webpack_require__(1);
+
+var _globals = __webpack_require__(0);
 
 var _globals2 = _interopRequireDefault(_globals);
 
-var _declarations = __webpack_require__(0);
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var _functions = __webpack_require__(3);
+//shows the error on the top of the screen
+function showError(message) {
+	_declarations.globalError.style.display = 'block';
+	_declarations.globalError.innerHTML = message;
+	setTimeout(function () {
+		_declarations.globalError.style.display = 'none';
+	}, 5000);
+}
 
-var _socketEvent = __webpack_require__(7);
+//print instructions in a type effect when a new player joins 
+var i = 0;
+function printInstructions(div) {
+	i++;
+	var counter = 0;
+	var typo = setInterval(function () {
+		div.innerHTML += _declarations.fullText[i - 1].charAt(counter);
+		counter++;
+		if (counter >= _declarations.fullText[i - 1].length) {
+			clearInterval(typo);
+			var divTarget = document.getElementById('gameInstructions' + i);
+			if (divTarget) {
+				printInstructions(divTarget);
+			} else {
+				i = 0;
+				document.getElementById('startGameWithColor').style.display = 'block';
+			}
+		}
+	}, 1000 / 25);
+}
 
-var _Player = __webpack_require__(4);
+// renders the score and the lives in the top black bar of the screen
+function drawScore() {
+	if (_globals2.default.playerList[_globals2.default.selfId]) {
+		if (_globals2.default.lastScore === _globals2.default.playerList[_globals2.default.selfId].score && _globals2.default.lastLives === _globals2.default.playerList[_globals2.default.selfId].lives) return;
+		_globals2.default.lastScore = _globals2.default.playerList[_globals2.default.selfId].score;
+		_globals2.default.lastLives = _globals2.default.playerList[_globals2.default.selfId].lives;
+		_declarations.scoreSpan.innerHTML = _globals2.default.lastScore;
+		_declarations.livesSpan.innerHTML = _globals2.default.lastLives;
+	}
+}
+
+// renders the player and bullet on the canvas
+function updateView() {
+	if (!_globals2.default.selfId) return;
+	_declarations.ctx.clearRect(0, 0, _declarations.WIDTH, _declarations.HEIGHT);
+
+	drawScore();
+	for (var i in _globals2.default.playerList) {
+		_globals2.default.playerList[i].draw();
+	}for (var i in _globals2.default.bulletList) {
+		_globals2.default.bulletList[i].draw();
+	}
+}
+
+// configures canvas height and width according to the screen
+function configure() {
+	window.addEventListener('resize', resizeCanvas, false);
+	function resizeCanvas() {
+		_declarations.canvas.width = window.innerWidth;
+		_declarations.canvas.height = window.innerHeight;
+	}
+	resizeCanvas();
+}
+
+// hides a element
+function hideElement(element) {
+	element.style.display = 'none';
+}
+
+// shows a element
+function showElement(element) {
+	element.style.display = 'block';
+}
+
+// set the height of the gaming isntructions div
+function manageHieghtForGameInstructions() {
+	_declarations.gameInstructions.style.height = Math.floor(0.7 * _declarations.HEIGHT) + 'px';
+}
+
+//shows final score when the game is over
+function showFinalScore(socre) {
+	_declarations.finalScoreSpan.innerHTML = score;
+}
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _declarations = __webpack_require__(1);
+
+var _globals = __webpack_require__(0);
+
+var _globals2 = _interopRequireDefault(_globals);
+
+var _Vector2 = __webpack_require__(7);
+
+var _Vector3 = _interopRequireDefault(_Vector2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/**
+ * @ES6 class
+ * @name Player
+ * @description creates a player whenever a new player joins in.
+ * draw function used for rendering, 
+ * update function used for updating coords and score
+ */
+var Player = function (_Vector) {
+	_inherits(Player, _Vector);
+
+	//using ES6 desctruct to get properties of the player
+	function Player(_ref) {
+		var id = _ref.id,
+		    x = _ref.x,
+		    y = _ref.y,
+		    hp = _ref.hp,
+		    hpMax = _ref.hpMax,
+		    score = _ref.score,
+		    directionMod = _ref.directionMod,
+		    spriteAnimCounter = _ref.spriteAnimCounter,
+		    lives = _ref.lives,
+		    color = _ref.color;
+
+		_classCallCheck(this, Player);
+
+		//Every player is a Vector with (x,y)
+		var _this = _possibleConstructorReturn(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, x, y));
+
+		_this.id = id; //id of the player -- helps in keeping track of the players
+		_this.hpMax = hpMax; //maximum health of the player in a life
+		_this.hp = hp; //remaining health of the player in a life
+		_this.score = score; //no of players killed by the player also ref as killings
+		_this.directionMod = directionMod; //1,2,3,4 depending on the mouse angle and key pressed 
+		//-- helps in displaying the correct part of player sprite image
+		_this.spriteAnimCounter = spriteAnimCounter; //kinda the speed of the avatar, can be 0,1,2 
+		//-- helps in displaying the correct part of player sprite image
+		_this.lives = lives; //remaining lives of the player
+		_this.color = color; //color of the hp bar 
+		_this.image = _declarations.Img.player; //image if the player 
+		_this.width = _declarations.Img.player.width; //width of the player image
+		_this.height = _declarations.Img.player.height; //height of the player image
+		return _this;
+	}
+
+	// the draw function is responsible for rendering the image of the player on the canvas.
+
+
+	_createClass(Player, [{
+		key: 'draw',
+		value: function draw() {
+			if (!this.color || this.color === '#ffffff') return;
+			var x = this.x;
+			var y = this.y;
+
+			if (this.x <= 20) x = 20;
+			if (this.x >= _declarations.WIDTH - 20) x = _declarations.WIDTH - 20;
+			if (this.y <= 100) y = 100;
+			if (this.y >= _declarations.HEIGHT - 70) y = _declarations.HEIGHT - 70;
+
+			var hpWidth = 30 * this.hp / this.hpMax;
+			_declarations.ctx.fillStyle = this.color;
+			_declarations.ctx.fillRect(x - hpWidth / 2, y - 60, hpWidth, 4);
+
+			var frameWidth = this.width / 3;
+			var frameHeight = this.height / 4 + 1;
+
+			var walkingMod = Math.floor(this.spriteAnimCounter) % 3; //1,2
+
+			_declarations.ctx.drawImage(this.image, walkingMod * frameWidth, this.directionMod * frameHeight, frameWidth, frameHeight, x - this.width / 2, y - this.height / 2, this.width, this.height);
+		}
+
+		// when a player is connected with the server this function is called to 
+		// add the player to the global player list.
+
+	}, {
+		key: 'appear',
+		value: function appear() {
+			_globals2.default.playerList[this.id] = this;
+		}
+
+		// the function update is called whenever there is a update event from the server
+		// this function sets the properties of the player as the pack received from the server.
+
+	}, {
+		key: 'update',
+		value: function update(pack) {
+			//console.log(this); 
+			if (pack.x !== undefined) this.x = pack.x;
+			if (pack.y !== undefined) this.y = pack.y;
+			if (pack.hp !== undefined) this.hp = pack.hp;
+			if (pack.score !== undefined) this.score = pack.score;
+			if (pack.lives !== undefined) this.lives = pack.lives;
+			if (pack.mouseAngle !== undefined) this.mouseAngle = pack.mouseAngle;
+			if (pack.directionMod !== undefined) this.directionMod = pack.directionMod;
+			if (pack.spriteAnimCounter !== undefined) this.spriteAnimCounter = pack.spriteAnimCounter;
+			if (pack.color !== undefined) this.color = pack.color;
+		}
+	}]);
+
+	return Player;
+}(_Vector3.default);
+
+exports.default = Player;
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _globals = __webpack_require__(0);
+
+var _globals2 = _interopRequireDefault(_globals);
+
+var _declarations = __webpack_require__(1);
+
+var _Vector2 = __webpack_require__(7);
+
+var _Vector3 = _interopRequireDefault(_Vector2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/**
+ * @ES6 class
+ * @name Bullet
+ * @description creates a bullet whenever the player presses the mouse.
+ * draw function used for rendering, 
+ * fire function used for adding to bullet list
+ */
+var Bullet = function (_Vector) {
+    _inherits(Bullet, _Vector);
+
+    function Bullet(_ref) {
+        var id = _ref.id,
+            x = _ref.x,
+            y = _ref.y;
+
+        _classCallCheck(this, Bullet);
+
+        // Every bullet is a Vector with (x,y)
+        var _this = _possibleConstructorReturn(this, (Bullet.__proto__ || Object.getPrototypeOf(Bullet)).call(this, x, y));
+
+        _this.id = id; // id of the bullet 
+        // -- helps in keeping track of the bullets and removing when out of bound of hit player
+        _this.image = _declarations.Img.bullet; //image if the player 
+        _this.width = _declarations.Img.bullet.width; //width of bullet image
+        _this.height = _declarations.Img.bullet.height; //height of bullet image
+        return _this;
+    }
+
+    // the draw function is responsible for rendering the image of the bullet on the canvas.
+
+
+    _createClass(Bullet, [{
+        key: 'draw',
+        value: function draw() {
+            _declarations.ctx.drawImage(this.image, 0, 0, this.width, this.height, this.x - this.width / 4, this.y - this.height / 4, this.width / 2, this.height / 2);
+        }
+        // this method is used to add the created bullets to the global bullet list.
+
+    }, {
+        key: 'fire',
+        value: function fire() {
+            _globals2.default.bulletList[this.id] = this;
+        }
+    }]);
+
+    return Bullet;
+}(_Vector3.default);
+
+exports.default = Bullet;
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _globals = __webpack_require__(0);
+
+var _globals2 = _interopRequireDefault(_globals);
+
+var _declarations = __webpack_require__(1);
+
+var _functions = __webpack_require__(2);
+
+var _socketEvent = __webpack_require__(6);
+
+var _Player = __webpack_require__(3);
 
 var _Player2 = _interopRequireDefault(_Player);
 
-var _Bullet = __webpack_require__(5);
+var _Bullet = __webpack_require__(4);
 
 var _Bullet2 = _interopRequireDefault(_Bullet);
 
@@ -304,311 +631,7 @@ _declarations.enterGame.onclick = function () {
 (0, _functions.configure)();
 
 /***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-exports.showError = showError;
-exports.printInstructions = printInstructions;
-exports.updateView = updateView;
-exports.configure = configure;
-exports.hideElement = hideElement;
-exports.showElement = showElement;
-exports.manageHieghtForGameInstructions = manageHieghtForGameInstructions;
-exports.showFinalScore = showFinalScore;
-
-var _declarations = __webpack_require__(0);
-
-var _globals = __webpack_require__(1);
-
-var _globals2 = _interopRequireDefault(_globals);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-//shows the error on the top of the screen
-function showError(message) {
-	_declarations.globalError.style.display = 'block';
-	_declarations.globalError.innerHTML = message;
-	setTimeout(function () {
-		_declarations.globalError.style.display = 'none';
-	}, 5000);
-}
-
-//print instructions in a type effect when a new player joins 
-var i = 0;
-function printInstructions(div) {
-	i++;
-	var counter = 0;
-	var typo = setInterval(function () {
-		div.innerHTML += _declarations.fullText[i - 1].charAt(counter);
-		counter++;
-		if (counter >= _declarations.fullText[i - 1].length) {
-			clearInterval(typo);
-			var divTarget = document.getElementById('gameInstructions' + i);
-			if (divTarget) {
-				printInstructions(divTarget);
-			} else {
-				i = 0;
-				document.getElementById('startGameWithColor').style.display = 'block';
-			}
-		}
-	}, 1000 / 25);
-}
-
-// renders the score and the lives in the top black bar of the screen
-function drawScore() {
-	if (_globals2.default.playerList[_globals2.default.selfId]) {
-		if (_globals2.default.lastScore === _globals2.default.playerList[_globals2.default.selfId].score && _globals2.default.lastLives === _globals2.default.playerList[_globals2.default.selfId].lives) return;
-		_globals2.default.lastScore = _globals2.default.playerList[_globals2.default.selfId].score;
-		_globals2.default.lastLives = _globals2.default.playerList[_globals2.default.selfId].lives;
-		_declarations.scoreSpan.innerHTML = _globals2.default.lastScore;
-		_declarations.livesSpan.innerHTML = _globals2.default.lastLives;
-	}
-}
-
-// renders the player and bullet on the canvas
-function updateView() {
-	if (!_globals2.default.selfId) return;
-	_declarations.ctx.clearRect(0, 0, _declarations.WIDTH, _declarations.HEIGHT);
-
-	drawScore();
-	for (var i in _globals2.default.playerList) {
-		_globals2.default.playerList[i].draw();
-	}for (var i in _globals2.default.bulletList) {
-		_globals2.default.bulletList[i].draw();
-	}
-}
-
-// configures canvas height and width according to the screen
-function configure() {
-	window.addEventListener('resize', resizeCanvas, false);
-	function resizeCanvas() {
-		_declarations.canvas.width = window.innerWidth;
-		_declarations.canvas.height = window.innerHeight;
-	}
-	resizeCanvas();
-}
-
-// hides a element
-function hideElement(element) {
-	element.style.display = 'none';
-}
-
-// shows a element
-function showElement(element) {
-	element.style.display = 'block';
-}
-
-// set the height of the gaming isntructions div
-function manageHieghtForGameInstructions() {
-	_declarations.gameInstructions.style.height = Math.floor(0.7 * _declarations.HEIGHT) + 'px';
-}
-
-//shows final score when the game is over
-function showFinalScore(socre) {
-	_declarations.finalScoreSpan.innerHTML = score;
-}
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _declarations = __webpack_require__(0);
-
-var _globals = __webpack_require__(1);
-
-var _globals2 = _interopRequireDefault(_globals);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * @ES6 class
- * @name Player
- * @description creates a player whenever a new player joins in.
- * draw function used for rendering, 
- * update function used for updating coords and score
- */
-var Player = function () {
-	//using ES6 desctruct to get properties of the player
-	function Player(_ref) {
-		var id = _ref.id,
-		    x = _ref.x,
-		    y = _ref.y,
-		    hp = _ref.hp,
-		    hpMax = _ref.hpMax,
-		    score = _ref.score,
-		    directionMod = _ref.directionMod,
-		    spriteAnimCounter = _ref.spriteAnimCounter,
-		    lives = _ref.lives,
-		    color = _ref.color;
-
-		_classCallCheck(this, Player);
-
-		this.id = id; //id of the player -- helps in keeping track of the players
-		this.x = x; //x in the (x,y) coords of 2d -- helps in moving the player on canvas 
-		this.y = y; //y in the (x,y) coords of 2d -- helps in moving the player on canvas
-		this.hpMax = hpMax; //maximum health of the player in a life
-		this.hp = hp; //remaining health of the player in a life
-		this.score = score; //no of players killed by the player also ref as killings
-		this.directionMod = directionMod; //1,2,3,4 depending on the mouse angle and key pressed 
-		//-- helps in displaying the correct part of player sprite image
-		this.spriteAnimCounter = spriteAnimCounter; //kinda the speed of the avatar, can be 0,1,2 
-		//-- helps in displaying the correct part of player sprite image
-		this.lives = lives; //remaining lives of the player
-		this.color = color; //color of the hp bar 
-		this.image = _declarations.Img.player; //image if the player 
-		this.width = _declarations.Img.player.width; //width of the player image
-		this.height = _declarations.Img.player.height; //height of the player image
-	}
-
-	// the draw function is responsible for rendering the image of the player on the canvas.
-
-
-	_createClass(Player, [{
-		key: 'draw',
-		value: function draw() {
-			if (!this.color || this.color === '#ffffff') return;
-			var x = this.x;
-			var y = this.y;
-
-			if (this.x <= 20) x = 20;
-			if (this.x >= _declarations.WIDTH - 20) x = _declarations.WIDTH - 20;
-			if (this.y <= 100) y = 100;
-			if (this.y >= _declarations.HEIGHT - 70) y = _declarations.HEIGHT - 70;
-
-			var hpWidth = 30 * this.hp / this.hpMax;
-			_declarations.ctx.fillStyle = this.color;
-			_declarations.ctx.fillRect(x - hpWidth / 2, y - 60, hpWidth, 4);
-
-			var frameWidth = this.width / 3;
-			var frameHeight = this.height / 4 + 1;
-
-			var walkingMod = Math.floor(this.spriteAnimCounter) % 3; //1,2
-
-			_declarations.ctx.drawImage(this.image, walkingMod * frameWidth, this.directionMod * frameHeight, frameWidth, frameHeight, x - this.width / 2, y - this.height / 2, this.width, this.height);
-		}
-
-		// when a player is connected with the server this function is called to 
-		// add the player to the global player list.
-
-	}, {
-		key: 'appear',
-		value: function appear() {
-			_globals2.default.playerList[this.id] = this;
-		}
-
-		// the function update is called whenever there is a update event from the server
-		// this function sets the properties of the player as the pack received from the server.
-
-	}, {
-		key: 'update',
-		value: function update(pack) {
-			//console.log(this); 
-			if (pack.x !== undefined) this.x = pack.x;
-			if (pack.y !== undefined) this.y = pack.y;
-			if (pack.hp !== undefined) this.hp = pack.hp;
-			if (pack.score !== undefined) this.score = pack.score;
-			if (pack.lives !== undefined) this.lives = pack.lives;
-			if (pack.mouseAngle !== undefined) this.mouseAngle = pack.mouseAngle;
-			if (pack.directionMod !== undefined) this.directionMod = pack.directionMod;
-			if (pack.spriteAnimCounter !== undefined) this.spriteAnimCounter = pack.spriteAnimCounter;
-			if (pack.color !== undefined) this.color = pack.color;
-		}
-	}]);
-
-	return Player;
-}();
-
-exports.default = Player;
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _globals = __webpack_require__(1);
-
-var _globals2 = _interopRequireDefault(_globals);
-
-var _declarations = __webpack_require__(0);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * @ES6 class
- * @name Bullet
- * @description creates a bullet whenever the player presses the mouse.
- * draw function used for rendering, 
- * fire function used for adding to bullet list
- */
-var Bullet = function () {
-    function Bullet(_ref) {
-        var id = _ref.id,
-            x = _ref.x,
-            y = _ref.y;
-
-        _classCallCheck(this, Bullet);
-
-        this.id = id; // id of the bullet 
-        // -- helps in keeping track of the bullets and removing when out of bound of hit player
-        this.x = x; //x in the (x,y) coords of 2d -- helps in moving the bullet on canvas 
-        this.y = y; //y in the (x,y) coords of 2d -- helps in moving the bullet on canvas
-        this.image = _declarations.Img.bullet; //image if the player 
-        this.width = _declarations.Img.bullet.width; //width of bullet image
-        this.height = _declarations.Img.bullet.height; //height of bullet image
-    }
-
-    // the draw function is responsible for rendering the image of the bullet on the canvas.
-
-
-    _createClass(Bullet, [{
-        key: 'draw',
-        value: function draw() {
-            _declarations.ctx.drawImage(this.image, 0, 0, this.width, this.height, this.x - this.width / 4, this.y - this.height / 4, this.width / 2, this.height / 2);
-        }
-        // this method is used to add the created bullets to the global bullet list.
-
-    }, {
-        key: 'fire',
-        value: function fire() {
-            _globals2.default.bulletList[this.id] = this;
-        }
-    }]);
-
-    return Bullet;
-}();
-
-exports.default = Bullet;
-
-/***/ }),
-/* 6 */,
-/* 7 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -624,21 +647,21 @@ exports.serverResponseRemove = serverResponseRemove;
 exports.serverResponseColorSelected = serverResponseColorSelected;
 exports.serverResponseGameLost = serverResponseGameLost;
 
-var _globals = __webpack_require__(1);
+var _globals = __webpack_require__(0);
 
 var _globals2 = _interopRequireDefault(_globals);
 
-var _declarations = __webpack_require__(0);
+var _declarations = __webpack_require__(1);
 
-var _Player = __webpack_require__(4);
+var _Player = __webpack_require__(3);
 
 var _Player2 = _interopRequireDefault(_Player);
 
-var _Bullet = __webpack_require__(5);
+var _Bullet = __webpack_require__(4);
 
 var _Bullet2 = _interopRequireDefault(_Bullet);
 
-var _functions = __webpack_require__(3);
+var _functions = __webpack_require__(2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -736,6 +759,33 @@ function serverResponseGameLost(data) {
     (0, _functions.showFinalScore)(data.score);
     socket = null;
 }
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * @ES6 class
+ * @name Vector
+ * @description any entity with (x,y) coordinates is a child of this class
+ */
+var Vector = function Vector(x, y) {
+    _classCallCheck(this, Vector);
+
+    this.x = x; //x in the (x,y) coords of 2d -- helps in moving the entity on canvas 
+    this.y = y; //y in the (x,y) coords of 2d -- helps in moving the entity on canvas
+};
+
+exports.default = Vector;
 
 /***/ })
 /******/ ]);

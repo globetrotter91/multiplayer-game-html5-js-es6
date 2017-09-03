@@ -1,6 +1,7 @@
 import globals from './globals'; 
 import { ctx, Img } from './declarations'; 
- 
+import Vector from './Vector';
+
 /**
  * @ES6 class
  * @name Bullet
@@ -8,12 +9,11 @@ import { ctx, Img } from './declarations';
  * draw function used for rendering, 
  * fire function used for adding to bullet list
  */
-export default class Bullet {
+export default class Bullet extends Vector {
     constructor({ id, x, y }) {
+        super(x, y);                        // Every bullet is a Vector with (x,y)
         this.id = id;                       // id of the bullet 
                                             // -- helps in keeping track of the bullets and removing when out of bound of hit player
-        this.x = x;                         //x in the (x,y) coords of 2d -- helps in moving the bullet on canvas 
-		this.y = y;							//y in the (x,y) coords of 2d -- helps in moving the bullet on canvas
         this.image = Img.bullet;            //image if the player 
         this.width = Img.bullet.width;      //width of bullet image
         this.height = Img.bullet.height;    //height of bullet image

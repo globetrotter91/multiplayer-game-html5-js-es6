@@ -1,13 +1,24 @@
-version: '3'
+#version: '3'
+#services:
+#  db:
+#    image: redis
+#  kill-the-enemy-game-server:
+#    build: .
+#    volumes:
+#     - ./:/app
+#    ports:
+#     - "3030:3030"
+#    depends_on:
+#     - db
+#    command: nodemon --watch /app/server --exec babel-node /app/server/app.js --presets es2015
+
+version: '2'
 services:
-  db:
-    image: redis
-  kill-the-enemy-game-server:
+  kill-the-enemy-game:
     build: .
-    volumes:
-     - ./:/app
     ports:
      - "3030:3030"
     depends_on:
-     - db
-    command: nodemon --watch /app/server --exec babel-node /app/server/app.js --presets es2015
+     - redis
+  redis:
+    image: redis

@@ -1,6 +1,7 @@
 import { WIDTH, HEIGHT, ctx, Img } from './declarations'; 
 import globals from './globals'; 
- 
+import Vector from './Vector'; 
+
 /**
  * @ES6 class
  * @name Player
@@ -8,12 +9,11 @@ import globals from './globals';
  * draw function used for rendering, 
  * update function used for updating coords and score
  */
-export default class Player {
+export default class Player extends Vector {
 	//using ES6 desctruct to get properties of the player
 	constructor({ id, x, y, hp, hpMax, score, directionMod, spriteAnimCounter, lives, color }) {
+		super(x,y);										//Every player is a Vector with (x,y)
 		this.id = id; 									//id of the player -- helps in keeping track of the players
-		this.x = x;										//x in the (x,y) coords of 2d -- helps in moving the player on canvas 
-		this.y = y;										//y in the (x,y) coords of 2d -- helps in moving the player on canvas
 		this.hpMax = hpMax;								//maximum health of the player in a life
 		this.hp = hp;									//remaining health of the player in a life
 		this.score = score;								//no of players killed by the player also ref as killings

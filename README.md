@@ -33,4 +33,4 @@ Kill the enemy game using html5 canvas and basic JS. ES6 syntax.
 
 2. Add powerups. 
 
-3. Add multiple boards/channels [max 4 player each]. 
+3. Add multiple boards/channels [max 4 player each]. [See MULTIPLE_CHANNELS.md]
